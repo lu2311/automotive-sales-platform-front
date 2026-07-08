@@ -1,0 +1,160 @@
+:root {
+  --primary: #2952e3;
+  --primary-dark: #1e3fc4;
+  --sidebar-bg: #16255b;
+  --sidebar-bg-active: #2952e3;
+  --sidebar-text: #b9c2e0;
+  --bg-app: #f4f6fb;
+  --card-border: #eaedf3;
+  --text-muted: #8a93a8;
+  --green: #17b26a;
+  --red: #f04438;
+  --yellow: #f79009;
+  --purple: #7a5af8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--bg-app);
+  font-family: "Segoe UI", Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #1f2430;
+}
+
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+  margin-left: 240px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.page-body {
+  padding: 24px 28px 40px;
+  flex: 1;
+}
+
+.card-soft {
+  background: #fff;
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.03);
+}
+
+.text-muted-sm {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.badge-etapa {
+  font-weight: 500;
+  font-size: 0.75rem;
+  padding: 5px 10px;
+  border-radius: 20px;
+}
+
+.badge-prospeccion { background: #e6ecff; color: #3559e0; }
+.badge-calificacion { background: #fff2dc; color: #b7791f; }
+.badge-negociacion { background: #f1e8ff; color: #7a3fe0; }
+.badge-cierre { background: #dcf6e8; color: #17904f; }
+
+.badge-estado-realizada { background: #dcf6e8; color: #17904f; }
+.badge-estado-negociacion { background: #e6ecff; color: #3559e0; }
+.badge-estado-fallida { background: #fde3e1; color: #d92d20; }
+
+.btn-primary-brand {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+.btn-primary-brand:hover {
+  background-color: var(--primary-dark);
+  border-color: var(--primary-dark);
+}
+
+.stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+
+.avatar-circle {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.table-clean thead th {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--card-border);
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+.table-clean td {
+  vertical-align: middle;
+  border-bottom: 1px solid #f1f3f8;
+  font-size: 0.88rem;
+}
+
+.nav-item-crm {
+  color: var(--sidebar-text);
+  padding: 9px 16px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.88rem;
+  text-decoration: none;
+  margin: 2px 12px;
+  transition: background 0.15s ease;
+}
+
+.nav-item-crm:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+
+.nav-item-crm.active {
+  background: var(--sidebar-bg-active);
+  color: #fff;
+}
+
+.nav-section-label {
+  color: #6c76a0;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 14px 22px 6px;
+}
+
+.vehicle-card img {
+  height: 150px;
+  object-fit: cover;
+  width: 100%;
+}
+
+.progress-thin {
+  height: 6px;
+  border-radius: 10px;
+}
