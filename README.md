@@ -1,7 +1,6 @@
 # AutoMotriz CRM Pro — Frontend
 
-Frontend en **React** (Create React App, sin Vite) con **Bootstrap 5** (sin Tailwind), construido para el
-requerimiento "Sistema de Gestión de Prospectos y Ventas para Empresa Automotriz".
+Frontend en React, construido para el requerimiento "Sistema de Gestión de Prospectos y Ventas para Empresa Automotriz".
 
 ## Estructura de componentes
 
@@ -49,22 +48,3 @@ La app se abrirá en `http://localhost:3000`.
 ```bash
 npm run build
 ```
-
-## Conectar con tus microservicios
-
-Todos los datos hoy vienen de `src/data/mockData.js`. Para conectar con tus
-microservicios (Prospectos, Ventas, Seguros, Dashboard):
-
-1. Crea un archivo `src/services/api.js` con tu cliente HTTP (fetch/axios) apuntando a las URLs de tus microservicios.
-2. En cada componente de página (`Dashboard.jsx`, `Prospectos.jsx`, `Ventas.jsx`, `Seguros.jsx`, etc.) reemplaza el
-   import de `mockData` por una llamada `useEffect` + `fetch` a tu API, guardando el resultado en `useState`.
-3. Los formularios (`ProspectoModal`, `VentaModal`) ya emiten un objeto `form` en `onSave`; solo necesitas
-   reemplazar el `setLista` local por un `POST` a tu microservicio correspondiente.
-
-## Notas
-
-- No se usó Vite ni Tailwind, tal como se solicitó — es un proyecto `react-scripts` (Create React App) con Bootstrap 5 vía npm.
-- Los íconos son de `bootstrap-icons`.
-- Los gráficos (barras, líneas, dona) usan `recharts`.
-- Cada página está separada en su propia carpeta/componente para mantener el proyecto ordenado y facilitar que cada
-  desarrollador del equipo (Backend, Frontend, QA) trabaje sobre módulos independientes.
