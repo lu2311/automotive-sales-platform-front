@@ -2,24 +2,38 @@ import React, { useState, useEffect } from "react";
 
 const vendedoresOptions = ["Carlos Mendoza", "Ana García", "Luis Rodríguez", "María Soto", "Pedro Leal", "Sofía Vargas"];
 
+
 const emptyForm = {
-  nombre: "",
-  apellido: "",
-  email: "",
-  telefono: "",
-  vehiculoInteres: "",
-  presupuesto: "",
-  observaciones: "",
-  etapa: "Prospección",
-  vendedor: vendedoresOptions[0],
+  nombre: "", apellido: "", email: "", telefono: "",
+  vehiculoInteres: "", presupuesto: "", observaciones: "",
+  etapa: "Prospección", vendedor: vendedoresOptions[0],
+  motivo: "",
 };
+
 
 export default function ProspectoModal({ show, onClose, onSave, initialData }) {
   const [form, setForm] = useState(emptyForm);
 
   useEffect(() => {
-    setForm(initialData || emptyForm);
+    if (initialData) {
+      const [nombre, ...rest] = initialData.nombre.split(" ");
+      setForm({
+        nombre: nombre || "",
+        apellido: rest.join(" ") || "",
+        email: initialData.email || "",
+        telefono: initialData.telefono || "",
+        vehiculoInteres: initialData.vehiculo || "",
+        presupuesto: "",
+        observaciones: "",
+        etapa: initialData.etapa || "Prospección",
+        vendedor: initialData.vendedor || vendedoresOptions[0],
+        motivo: "",
+      });
+    } else {
+      setForm(emptyForm);
+    }
   }, [initialData, show]);
+
 
   if (!show) return null;
 
@@ -39,8 +53,13 @@ export default function ProspectoModal({ show, onClose, onSave, initialData }) {
           <div className="modal-content border-0" style={{ borderRadius: 14 }}>
             <div className="modal-header border-0 pb-0">
               <div>
-                <h5 className="modal-title fw-bold mb-0">Nuevo Prospecto</h5>
-                <div className="text-muted-sm">Completa los datos del cliente potencial</div>
+                <h5 className="modal-title fw-bold mb-0">
+                  {initialData ? "Editar Prospecto" : "Nuevo Prospecto"}
+                </h5>
+                <div className="text-muted-sm">
+                  {initialData ? "Modifica los datos del cliente" : "Completa los datos del cliente potencial"}
+                </div>
+
               </div>
               <button type="button" className="btn-close" onClick={onClose} />
             </div>
@@ -90,6 +109,14 @@ export default function ProspectoModal({ show, onClose, onSave, initialData }) {
                       <option key={v}>{v}</option>
                     ))}
                   </select>
+                  {form.etapa === "Cierre" && (
+                    <div className="col-12">
+                      <label className="form-label small fw-medium">Motivo (si es venta fallida)</label>
+                      <input className="form-control" name="motivo" value={form.motivo}
+                        onChange={handleChange} placeholder="Presupuesto, competencia..." />
+                    </div>
+                  )}
+
                 </div>
               </div>
             </div>
@@ -98,7 +125,7 @@ export default function ProspectoModal({ show, onClose, onSave, initialData }) {
                 Cancelar
               </button>
               <button className="btn btn-primary-brand text-white" onClick={handleSubmit}>
-                Guardar Prospecto
+                {initialData ? "Guardar Cambios" : "Guardar Prospecto"}
               </button>
             </div>
           </div>

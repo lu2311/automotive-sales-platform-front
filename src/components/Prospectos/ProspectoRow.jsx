@@ -10,7 +10,7 @@ function initials(name) {
     .toUpperCase();
 }
 
-export default function ProspectoRow({ prospecto, onDelete }) {
+export default function ProspectoRow({ prospecto, onDelete, onEdit, onAdvance }) {
   return (
     <tr>
       <td>
@@ -31,9 +31,17 @@ export default function ProspectoRow({ prospecto, onDelete }) {
       <td>{prospecto.ultimoContacto}</td>
       <td>
         <div className="d-flex gap-2">
-          <button className="btn btn-sm btn-light"><i className="bi bi-eye" /></button>
-          <button className="btn btn-sm btn-light"><i className="bi bi-pencil" /></button>
-          <button className="btn btn-sm btn-light text-danger" onClick={() => onDelete(prospecto.id)}>
+          <button className="btn btn-sm btn-light" onClick={() => onEdit(prospecto)}>
+            <i className="bi bi-pencil" />
+          </button>
+          {prospecto.etapa !== "Cierre" && (
+            <button className="btn btn-sm btn-primary-brand text-white"
+              onClick={() => onAdvance(prospecto)}>
+              Avanzar →
+            </button>
+          )}
+          <button className="btn btn-sm btn-light text-danger"
+            onClick={() => onDelete(prospecto.id)}>
             <i className="bi bi-trash" />
           </button>
         </div>

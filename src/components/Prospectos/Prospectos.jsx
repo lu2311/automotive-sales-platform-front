@@ -11,6 +11,8 @@ export default function Prospectos() {
   const [filtro, setFiltro] = useState("Todos");
   const [busqueda, setBusqueda] = useState("");
   const [showModal, setShowModal] = useState(false);
+  const [editingProspect, setEditingProspect] = useState(null);
+
 
   const filtrados = useMemo(() => {
     return lista.filter((p) => {
@@ -27,19 +29,56 @@ export default function Prospectos() {
   };
 
   const handleSave = (form) => {
-    const nuevo = {
-      id: lista.length ? Math.max(...lista.map((p) => p.id)) + 1 : 1,
-      nombre: `${form.nombre} ${form.apellido}`.trim(),
-      telefono: form.telefono,
-      email: form.email,
-      vehiculo: form.vehiculoInteres,
-      etapa: form.etapa,
-      vendedor: form.vendedor,
-      ultimoContacto: new Date().toISOString().slice(0, 10),
-    };
-    setLista((prev) => [nuevo, ...prev]);
+    if (editingProspect) {
+      setLista((prev) =>
+        prev.map((p) =>
+          p.id === editingProspect.id
+            ? {
+              ...p, nombre: `${form.nombre} ${form.apellido}`.trim(),
+              telefono: form.telefono, email: form.email,
+              vehiculo: form.vehiculoInteres, etapa: form.etapa,
+              vendedor: form.vendedor,
+              ultimoContacto: new Date().toISOString().slice(0, 10)
+            }
+            : p
+        )
+      );
+    } else {
+      const nuevo = {
+        id: lista.length ? Math.max(...lista.map((p) => p.id)) + 1 : 1,
+        nombre: `${form.nombre} ${form.apellido}`.trim(),
+        telefono: form.telefono, email: form.email,
+        vehiculo: form.vehiculoInteres, etapa: form.etapa,
+        vendedor: form.vendedor,
+        ultimoContacto: new Date().toISOString().slice(0, 10),
+      };
+      setLista((prev) => [nuevo, ...prev]);
+    }
     setShowModal(false);
+    setEditingProspect(null);
   };
+
+
+  const handleEdit = (prospecto) => {
+    setEditingProspect(prospecto);
+    setShowModal(true);
+  };
+
+  const nextStage = { "Prospección": "Calificación", "Calificación": "Negociación", "Negociación": "Cierre" };
+
+  const handleAdvance = (prospecto) => {
+    const nuevaEtapa = nextStage[prospecto.etapa];
+    if (!nuevaEtapa) return;
+    setLista((prev) =>
+      prev.map((p) =>
+        p.id === prospecto.id
+          ? { ...p, etapa: nuevaEtapa, ultimoContacto: new Date().toISOString().slice(0, 10) }
+          : p
+      )
+    );
+  };
+
+
 
   return (
     <div>
@@ -94,7 +133,13 @@ export default function Prospectos() {
             </thead>
             <tbody>
               {filtrados.map((p) => (
-                <ProspectoRow key={p.id} prospecto={p} onDelete={handleDelete} />
+                <ProspectoRow
+                  key={p.id}
+                  prospecto={p}
+                  onDelete={handleDelete}
+                  onEdit={handleEdit}
+                  onAdvance={handleAdvance}
+                />
               ))}
               {filtrados.length === 0 && (
                 <tr>
@@ -108,7 +153,12 @@ export default function Prospectos() {
         </div>
       </div>
 
-      <ProspectoModal show={showModal} onClose={() => setShowModal(false)} onSave={handleSave} />
+      <ProspectoModal
+        show={showModal}
+        initialData={editingProspect}
+        onClose={() => { setShowModal(false); setEditingProspect(null); }}
+        onSave={handleSave}
+      />
     </div>
   );
 }
