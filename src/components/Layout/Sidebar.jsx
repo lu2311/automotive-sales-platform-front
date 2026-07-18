@@ -13,6 +13,7 @@ const mainLinks = [
 
 const analysisLinks = [
   { to: "/reportes", label: "Reportes", icon: "bi-bar-chart-fill" },
+  { to: "/rendimiento", label: "Rendimiento", icon: "bi-graph-up-arrow" }, 
   { to: "/configuracion", label: "Configuración", icon: "bi-gear-fill" },
 ];
 

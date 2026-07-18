@@ -136,6 +136,11 @@ export const distribucionPorEtapa = [
 
 export const tendenciaAnual = ventasMensuales2024;
 
+export const rendimiento = [
+  { id: 1, concurrency: 50, requests: 50, success: 50, error_rate: 0, avg_ms: 56.64, p95_ms: 86.41, max_ms: 91.31, acceptance: true, date: "2026-07-07" },
+  { id: 2, concurrency: 100, requests: 100, success: 100, error_rate: 0, avg_ms: 56.98, p95_ms: 96.18, max_ms: 99.56, acceptance: true, date: "2026-07-07" },
+];
+
 export const usuarioActual = {
   nombre: "Juan Martínez",
   rol: "Gerente Comercial",

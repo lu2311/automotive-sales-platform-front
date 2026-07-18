@@ -11,6 +11,7 @@ import Vendedores from "./components/Vendedores/Vendedores";
 import Automatizaciones from "./components/Automatizaciones/Automatizaciones";
 import Reportes from "./components/Reportes/Reportes";
 import Configuracion from "./components/Configuracion/Configuracion";
+import Rendimiento from "./components/Rendimiento/Rendimiento";
 
 export default function App() {
   return (
@@ -30,6 +31,7 @@ export default function App() {
               <Route path="/automatizaciones" element={<Automatizaciones />} />
               <Route path="/reportes" element={<Reportes />} />
               <Route path="/configuracion" element={<Configuracion />} />
+              <Route path="/rendimiento" element={<Rendimiento />} />
             </Routes>
           </div>
         </div>
