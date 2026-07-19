@@ -1,31 +1,60 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import PageHeader from "../common/PageHeader";
 import EstadoBadge from "../common/EstadoBadge";
 import VentaModal from "./VentaModal";
-import { ventas as initialVentas } from "../../data/mockData";
+import { api } from "../../services/api";
+
+const statusLabel = { completed: "Venta realizada", failed: "Venta fallida" };
 
 function initials(name) {
   return name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
 }
 
 export default function Ventas() {
-  const [lista, setLista] = useState(initialVentas);
+  const [lista, setLista] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
 
-  const handleSave = (form) => {
-    const nueva = {
-      id: lista.length ? Math.max(...lista.map((v) => v.id)) + 1 : 1,
-      cliente: form.cliente,
-      vehiculo: form.vehiculo,
-      vendedor: form.vendedor,
-      seguro: "—",
-      estado: form.estado,
-      fecha: form.fecha || new Date().toISOString().slice(0, 10),
-      monto: Number(String(form.monto).replace(/[^0-9.]/g, "")) || 0,
-    };
-    setLista((prev) => [nueva, ...prev]);
-    setShowModal(false);
+
+  const load = async () => {
+    try {
+      const data = await api.getSales();
+      setLista(data.map(s => ({
+        id: s.id,
+        cliente: s.prospect_name,
+        vehiculo: s.vehicle_name,
+        vendedor: s.seller_name,
+        seguro: "—",
+        estado: statusLabel[s.status] || s.status,
+        fecha: s.created_at ? s.created_at.slice(0, 10) : "",
+        monto: s.amount,
+      })));
+    } catch (e) {
+      console.error('Error loading sales:', e);
+    } finally {
+      setLoading(false);
+    }
   };
+  useEffect(() => { load(); }, []);
+
+  const handleSave = async (form) => {
+    try {
+      await api.createSale({
+        prospect_id: Number(form.prospectId),
+        vehicle_id: Number(form.vehicleId),
+        seller_id: Number(form.sellerId),
+        amount: Number(String(form.monto).replace(/[^0-9.]/g, "")),
+        status: form.estado === "Venta fallida" ? "failed" : "completed",
+        loss_reason: form.motivo || undefined,
+      });
+      await load();
+      setShowModal(false);
+    } catch (e) {
+      alert(e.message);
+    }
+  };
+
+  if (loading) return <div className="text-center py-5"><div className="spinner-border" /></div>;
 
   return (
     <div>

@@ -1,17 +1,43 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import PageHeader from "../common/PageHeader";
 import ProspectoRow from "./ProspectoRow";
 import ProspectoModal from "./ProspectoModal";
-import { prospectos as initialProspectos } from "../../data/mockData";
+import { api } from "../../services/api";
 
 const filtros = ["Todos", "Prospección", "Calificación", "Negociación", "Cierre"];
+const stageFromAPI = { initial: "Prospección", qualification: "Calificación", negotiation: "Negociación", closed: "Cierre" };
+const stageToAPI = { Prospección: "initial", Calificación: "qualification", Negociación: "negotiation", Cierre: "closed" };
 
 export default function Prospectos() {
-  const [lista, setLista] = useState(initialProspectos);
+  const [lista, setLista] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [filtro, setFiltro] = useState("Todos");
   const [busqueda, setBusqueda] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editingProspect, setEditingProspect] = useState(null);
+
+  const load = async () => {
+    try {
+      const data = await api.getProspects();
+      setLista(data.map(p => ({
+        id: p.id,
+        nombre: p.name,
+        telefono: p.phone,
+        email: p.email,
+        vehiculo: p.vehicle_interest,
+        etapa: stageFromAPI[p.stage] || p.stage,
+        vendedor: p.seller_name,
+        vendedorId: p.seller_id,
+        ultimoContacto: p.last_activity ? p.last_activity.slice(0, 10) : "",
+      })));
+    } catch (e) {
+      console.error('Error loading prospects:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => { load(); }, []);
+
 
 
   const filtrados = useMemo(() => {
@@ -28,31 +54,24 @@ export default function Prospectos() {
     setLista((prev) => prev.filter((p) => p.id !== id));
   };
 
-  const handleSave = (form) => {
-    if (editingProspect) {
-      setLista((prev) =>
-        prev.map((p) =>
-          p.id === editingProspect.id
-            ? {
-              ...p, nombre: `${form.nombre} ${form.apellido}`.trim(),
-              telefono: form.telefono, email: form.email,
-              vehiculo: form.vehiculoInteres, etapa: form.etapa,
-              vendedor: form.vendedor,
-              ultimoContacto: new Date().toISOString().slice(0, 10)
-            }
-            : p
-        )
-      );
-    } else {
-      const nuevo = {
-        id: lista.length ? Math.max(...lista.map((p) => p.id)) + 1 : 1,
-        nombre: `${form.nombre} ${form.apellido}`.trim(),
-        telefono: form.telefono, email: form.email,
-        vehiculo: form.vehiculoInteres, etapa: form.etapa,
-        vendedor: form.vendedor,
-        ultimoContacto: new Date().toISOString().slice(0, 10),
-      };
-      setLista((prev) => [nuevo, ...prev]);
+  const handleSave = async (form) => {
+    const payload = {
+      name: `${form.nombre} ${form.apellido}`.trim(),
+      email: form.email,
+      phone: form.telefono,
+      vehicle_interest: form.vehiculoInteres,
+      seller_id: Number(form.vendedorId),
+      stage: stageToAPI[form.etapa] || "initial",
+    };
+    try {
+      if (editingProspect) {
+        await api.updateProspect(editingProspect.id, payload);
+      } else {
+        await api.createProspect(payload);
+      }
+      await load();
+    } catch (e) {
+      alert(e.message);
     }
     setShowModal(false);
     setEditingProspect(null);
@@ -66,18 +85,19 @@ export default function Prospectos() {
 
   const nextStage = { "Prospección": "Calificación", "Calificación": "Negociación", "Negociación": "Cierre" };
 
-  const handleAdvance = (prospecto) => {
+  const handleAdvance = async (prospecto) => {
     const nuevaEtapa = nextStage[prospecto.etapa];
     if (!nuevaEtapa) return;
-    setLista((prev) =>
-      prev.map((p) =>
-        p.id === prospecto.id
-          ? { ...p, etapa: nuevaEtapa, ultimoContacto: new Date().toISOString().slice(0, 10) }
-          : p
-      )
-    );
+    try {
+      await api.updateProspect(prospecto.id, { stage: stageToAPI[nuevaEtapa] });
+      await load();
+    } catch (e) {
+      alert(e.message);
+    }
   };
 
+
+  if (loading) return <div className="text-center py-5"><div className="spinner-border" /></div>;
 
 
   return (

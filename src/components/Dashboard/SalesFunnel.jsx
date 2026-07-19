@@ -1,8 +1,23 @@
 import React from "react";
-import { embudoVentas } from "../../data/mockData";
 
-export default function SalesFunnel() {
-  const max = embudoVentas[0].cantidad;
+
+export default function SalesFunnel({ funnel }) {
+
+  const items = funnel.length ? funnel : [
+    { stage: "initial", count: 0, conversion: 0 },
+    { stage: "qualification", count: 0, conversion: 0 },
+    { stage: "negotiation", count: 0, conversion: 0 },
+    { stage: "closed", count: 0, conversion: 0 },
+  ];
+
+  const max = Math.max(...items.map(i => i.count), 1);
+
+  const stageLabels = {
+    initial: "Prospección",
+    qualification: "Calificación",
+    negotiation: "Negociación",
+    closed: "Cierre"
+  };
 
   return (
     <div className="card-soft p-3 h-100">
@@ -10,12 +25,12 @@ export default function SalesFunnel() {
       <div className="text-muted-sm mb-3">Flujo de prospectos por etapa</div>
 
       <div className="d-flex flex-column gap-3">
-        {embudoVentas.map((item) => (
-          <div key={item.etapa}>
+        {items.map((item) => (
+          <div key={item.stage}>
             <div className="d-flex justify-content-between mb-1" style={{ fontSize: "0.82rem" }}>
-              <span className="fw-medium">{item.etapa}</span>
+              <span className="fw-medium">{stageLabels[item.stage] || item.stage}</span>
               <span className="text-muted-sm">
-                {item.cantidad} · {item.porcentaje}%
+                {item.count} · {item.conversion}%
               </span>
             </div>
             <div className="bg-light rounded-pill" style={{ height: 26 }}>
@@ -23,14 +38,14 @@ export default function SalesFunnel() {
                 className="d-flex align-items-center rounded-pill text-white px-3"
                 style={{
                   height: "100%",
-                  width: `${(item.cantidad / max) * 100}%`,
+                  width: `${(item.count / max) * 100}%`,
                   minWidth: 60,
                   backgroundColor: "var(--primary)",
                   fontSize: "0.78rem",
                   fontWeight: 600,
                 }}
               >
-                {item.cantidad}
+                {item.count}
               </div>
             </div>
           </div>

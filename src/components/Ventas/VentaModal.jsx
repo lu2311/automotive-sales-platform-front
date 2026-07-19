@@ -1,20 +1,35 @@
-import React, { useState } from "react";
-
-const vendedoresOptions = ["Carlos Mendoza", "Ana García", "Luis Rodríguez", "María Soto", "Pedro Leal", "Sofía Vargas"];
+import React, { useState, useEffect } from "react";
+import { api } from "../../services/api";
 
 const emptyForm = {
-  cliente: "",
-  vehiculo: "",
+  prospectId: "",
+  vehicleId: "",
+  sellerId: "",
   monto: "",
   metodoPago: "Contado",
   fecha: "",
-  vendedor: vendedoresOptions[0],
   estado: "Venta realizada",
   motivo: "",
 };
 
 export default function VentaModal({ show, onClose, onSave }) {
   const [form, setForm] = useState(emptyForm);
+  const [prospects, setProspects] = useState([]);
+  const [vehicles, setVehicles] = useState([]);
+  const [sellers, setSellers] = useState([]);
+
+
+  useEffect(() => {
+    if (!show) return;
+    Promise.all([
+      api.getCatalogs(),
+      api.getProspects(),
+    ]).then(([cat, pros]) => {
+      setSellers(cat.sellers || []);
+      setVehicles(cat.vehicles || []);
+      setProspects((pros || []).filter(p => p.stage !== 'closed'));
+    }).catch(() => { });
+  }, [show]);
 
   if (!show) return null;
 
@@ -44,16 +59,29 @@ export default function VentaModal({ show, onClose, onSave }) {
               <div className="row g-3">
                 <div className="col-6">
                   <label className="form-label small fw-medium">Cliente</label>
-                  <input className="form-control" name="cliente" value={form.cliente} onChange={handleChange} placeholder="Ricardo Flores" />
+                  <select className="form-select" name="prospectId" value={form.prospectId} onChange={handleChange}>
+                    <option value="">Seleccionar...</option>
+                    {prospects.map((p) => (
+                      <option key={p.id} value={p.id}>{p.name} — {p.vehicle_interest}</option>
+                    ))}
+                  </select>
                 </div>
+
                 <div className="col-6">
                   <label className="form-label small fw-medium">Vehículo</label>
-                  <input className="form-control" name="vehiculo" value={form.vehiculo} onChange={handleChange} placeholder="Toyota Corolla 2024" />
+                  <select className="form-select" name="vehicleId" value={form.vehicleId} onChange={handleChange}>
+                    <option value="">Seleccionar...</option>
+                    {vehicles.map((v) => (
+                      <option key={v.id} value={v.id}>{v.brand} {v.model} ({v.year})</option>
+                    ))}
+                  </select>
                 </div>
+
                 <div className="col-6">
                   <label className="form-label small fw-medium">Monto</label>
                   <input className="form-control" name="monto" value={form.monto} onChange={handleChange} placeholder="$28,500" />
                 </div>
+
                 <div className="col-6">
                   <label className="form-label small fw-medium">Método de pago</label>
                   <select className="form-select" name="metodoPago" value={form.metodoPago} onChange={handleChange}>
@@ -62,15 +90,18 @@ export default function VentaModal({ show, onClose, onSave }) {
                     <option>Leasing</option>
                   </select>
                 </div>
+
                 <div className="col-6">
                   <label className="form-label small fw-medium">Fecha</label>
                   <input className="form-control" type="date" name="fecha" value={form.fecha} onChange={handleChange} />
                 </div>
+
                 <div className="col-6">
                   <label className="form-label small fw-medium">Vendedor</label>
-                  <select className="form-select" name="vendedor" value={form.vendedor} onChange={handleChange}>
-                    {vendedoresOptions.map((v) => (
-                      <option key={v}>{v}</option>
+                  <select className="form-select" name="sellerId" value={form.sellerId} onChange={handleChange}>
+                    <option value="">Seleccionar...</option>
+                    {sellers.map((s) => (
+                      <option key={s.id} value={s.id}>{s.name}</option>
                     ))}
                   </select>
                 </div>
@@ -78,7 +109,6 @@ export default function VentaModal({ show, onClose, onSave }) {
                   <label className="form-label small fw-medium">Estado</label>
                   <select className="form-select" name="estado" value={form.estado} onChange={handleChange}>
                     <option>Venta realizada</option>
-                    <option>En negociación</option>
                     <option>Venta fallida</option>
                   </select>
                 </div>

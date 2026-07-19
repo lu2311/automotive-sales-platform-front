@@ -5,34 +5,48 @@ import SalesFunnel from "./SalesFunnel";
 import SalesByVendor from "./SalesByVendor";
 import MonthlySales from "./MonthlySales";
 import InsuranceByType from "./InsuranceByType";
-import { kpis } from "../../data/mockData";
+import { api } from "../../services/api"
 
 export default function Dashboard() {
 
-  const [kpiData, setKpiData] = useState(kpis);
+  const [kpiData, setKpiData] = useState(null);
+  const [funnel, setFunnel] = useState([]);
   const [lastUpdate, setLastUpdate] = useState(Date.now());
+  const [loading, setLoading] = useState(true);
 
-  const refreshData = useCallback(() => {
-    const variar = (val) => {
-      if (typeof val === 'number') {
-        return Math.max(0, Math.round(val + val * (Math.random() - 0.5) * 0.02));
-      }
-      return val;
-    };
-    setKpiData(prev => ({
-      ...prev,
-      totalProspectos: variar(prev.totalProspectos),
-      ventasRealizadas: variar(prev.ventasRealizadas),
-      ventasFallidas: variar(prev.ventasFallidas),
-      segurosVinculados: variar(prev.segurosVinculados),
-    }));
-    setLastUpdate(Date.now());
+  const refreshData = useCallback(async () => {
+    try {
+      const data = await api.getMetrics();
+      setKpiData({
+        totalProspectos: data.total_prospects,
+        prospectosDelta: null,
+        ventasRealizadas: data.completed_sales,
+        ventasDelta: null,
+        ventasFallidas: data.failed_sales,
+        ventasFallidasDelta: null,
+        tasaConversion: data.conversion_rate,
+        tasaConversionDelta: null,
+        segurosVinculados: data.linked_insurance,
+        segurosDelta: null,
+        ventasDelMes: (data.completed_sales * 28000).toLocaleString(),
+        ventasDelMesDelta: null,
+      });
+      setFunnel(data.funnel || []);
+      setLastUpdate(Date.now());
+    } catch (e) {
+      console.error('Error fetching metrics:', e);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
+    refreshData();
     const interval = setInterval(refreshData, 15000);
     return () => clearInterval(interval);
   }, [refreshData]);
+
+  if (loading) return <div className="text-center py-5"><div className="spinner-border" /></div>;
 
   return (
     <div>
@@ -56,28 +70,28 @@ export default function Dashboard() {
 
       <div className="row g-3 mb-3">
         <div className="col-6 col-md-4 col-xl-2">
-          <StatCard icon="bi-people-fill" iconBg="#e6ecff" iconColor="#2952e3" label="Total Prospectos" value={kpiData.totalProspectos.toLocaleString()} delta={kpiData.prospectosDelta} />
+          <StatCard icon="bi-people-fill" iconBg="#e6ecff" iconColor="#2952e3" label="Total Prospectos" value={kpiData.totalProspectos.toLocaleString()} />
         </div>
         <div className="col-6 col-md-4 col-xl-2">
-          <StatCard icon="bi-cart-check-fill" iconBg="#dcf6e8" iconColor="#17b26a" label="Ventas Realizadas" value={kpiData.ventasRealizadas} delta={kpiData.ventasDelta} />
+          <StatCard icon="bi-cart-check-fill" iconBg="#dcf6e8" iconColor="#17b26a" label="Ventas Realizadas" value={kpiData.ventasRealizadas}  />
         </div>
         <div className="col-6 col-md-4 col-xl-2">
-          <StatCard icon="bi-x-circle-fill" iconBg="#fde3e1" iconColor="#f04438" label="Ventas Fallidas" value={kpiData.ventasFallidas} delta={kpiData.ventasFallidasDelta} deltaPositive={false} />
+          <StatCard icon="bi-x-circle-fill" iconBg="#fde3e1" iconColor="#f04438" label="Ventas Fallidas" value={kpiData.ventasFallidas}  deltaPositive={false} />
         </div>
         <div className="col-6 col-md-4 col-xl-2">
-          <StatCard icon="bi-percent" iconBg="#fff2dc" iconColor="#f79009" label="Tasa de Conversión" value={`${kpiData.tasaConversion}%`} delta={kpiData.tasaConversionDelta} />
+          <StatCard icon="bi-percent" iconBg="#fff2dc" iconColor="#f79009" label="Tasa de Conversión" value={`${kpiData.tasaConversion}%`}  />
         </div>
         <div className="col-6 col-md-4 col-xl-2">
-          <StatCard icon="bi-shield-check" iconBg="#f1e8ff" iconColor="#7a5af8" label="Seguros Vinculados" value={kpiData.segurosVinculados} delta={kpiData.segurosDelta} />
+          <StatCard icon="bi-shield-check" iconBg="#f1e8ff" iconColor="#7a5af8" label="Seguros Vinculados" value={kpiData.segurosVinculados}  />
         </div>
         <div className="col-6 col-md-4 col-xl-2">
-          <StatCard icon="bi-cash-stack" iconBg="#e6ecff" iconColor="#2952e3" label="Ventas del Mes" value={`$${kpiData.ventasDelMes}`} delta={kpiData.ventasDelMesDelta} />
+          <StatCard icon="bi-cash-stack" iconBg="#e6ecff" iconColor="#2952e3" label="Ventas del Mes" value={`$${kpiData.ventasDelMes}`}  />
         </div>
       </div>
 
       <div className="row g-3 mb-3">
         <div className="col-lg-6">
-          <SalesFunnel />
+          <SalesFunnel funnel={funnel}/>
         </div>
         <div className="col-lg-6">
           <SalesByVendor />

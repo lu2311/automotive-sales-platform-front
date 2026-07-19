@@ -1,14 +1,35 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import PageHeader from "../common/PageHeader";
-import { rendimiento as initialData } from "../../data/mockData";
+import { api } from "../../services/api";
 
 export default function Rendimiento() {
-  const [data, setData] = useState(initialData);
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.getPerformance().then(res => {
+      setData((res || []).map(r => ({
+        id: r.id,
+        concurrency: r.concurrency,
+        requests: r.requests,
+        success: r.success,
+        error_rate: r.error_rate_percent,
+        avg_ms: r.avg_ms,
+        p95_ms: r.p95_ms,
+        max_ms: r.max_ms,
+        acceptance: !!r.acceptance,
+        date: r.created_at ? r.created_at.slice(0, 10) : "",
+      })));
+    }).catch(() => { }).finally(() => setLoading(false));
+  }, []);
 
   const ultimo = data[0] || {};
 
   const criterioClass = ultimo.acceptance ? "text-success" : "text-danger";
   const criterioLabel = ultimo.acceptance ? "Cumple" : "No cumple";
+
+
+  if (loading) return <div className="text-center py-5"><div className="spinner-border" /></div>;
 
   return (
     <div>

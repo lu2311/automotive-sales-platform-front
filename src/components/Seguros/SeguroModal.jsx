@@ -1,26 +1,29 @@
-import React, { useState } from "react";
-import { ventas, vendedores } from "../../data/mockData";
+import React, { useState, useEffect } from "react";
+import { api } from "../../services/api";
 
 const tiposSeguro = ["Todo Riesgo", "Responsabilidad Civil", "Robo y Hurto", "Daños Parciales"];
 
 const emptyForm = {
-  cliente: "", vehiculo: "", tipo: tiposSeguro[0],
+  saleId: "", tipo: tiposSeguro[0],
   primaEsperada: "", primaReal: "", estado: "Prospectado",
 };
 
 export default function SeguroModal({ show, onClose, onSave }) {
   const [form, setForm] = useState(emptyForm);
+  const [completedSales, setCompletedSales] = useState([]);
+
+  useEffect(() => {
+    if (!show) return;
+    api.getSales().then(data => {
+      setCompletedSales((data || []).filter(s => s.status === 'completed'));
+    }).catch(() => { });
+  }, [show]);
 
   if (!show) return null;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    const updates = { [name]: value };
-    if (name === "cliente") {
-      const venta = ventas.find(v => v.cliente === value);
-      updates.vehiculo = venta ? venta.vehiculo : "";
-    }
-    setForm(prev => ({ ...prev, ...updates }));
+    setForm(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = () => {
@@ -43,18 +46,15 @@ export default function SeguroModal({ show, onClose, onSave }) {
             <div className="modal-body">
               <div className="row g-3">
                 <div className="col-6">
-                  <label className="form-label small fw-medium">Cliente</label>
-                  <select className="form-select" name="cliente" value={form.cliente} onChange={handleChange}>
+                  <label className="form-label small fw-medium">Venta</label>
+                  <select className="form-select" name="saleId" value={form.saleId} onChange={handleChange}>
                     <option value="">Seleccionar...</option>
-                    {ventas.filter(v => v.estado === "Venta realizada").map(v => (
-                      <option key={v.id}>{v.cliente}</option>
+                    {completedSales.map(v => (
+                      <option key={v.id} value={v.id}>{v.prospect_name} — {v.vehicle_name}</option>
                     ))}
                   </select>
                 </div>
-                <div className="col-6">
-                  <label className="form-label small fw-medium">Vehículo</label>
-                  <input className="form-control" name="vehiculo" value={form.vehiculo} readOnly />
-                </div>
+
                 <div className="col-6">
                   <label className="form-label small fw-medium">Tipo de seguro</label>
                   <select className="form-select" name="tipo" value={form.tipo} onChange={handleChange}>

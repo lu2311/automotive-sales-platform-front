@@ -1,18 +1,23 @@
 import React, { useState, useEffect } from "react";
+import { api } from "../../services/api";
 
-const vendedoresOptions = ["Carlos Mendoza", "Ana García", "Luis Rodríguez", "María Soto", "Pedro Leal", "Sofía Vargas"];
 
 
 const emptyForm = {
   nombre: "", apellido: "", email: "", telefono: "",
   vehiculoInteres: "", presupuesto: "", observaciones: "",
-  etapa: "Prospección", vendedor: vendedoresOptions[0],
+  etapa: "Prospección", vendedorId: "",
   motivo: "",
 };
 
 
 export default function ProspectoModal({ show, onClose, onSave, initialData }) {
   const [form, setForm] = useState(emptyForm);
+  const [sellers, setSellers] = useState([]);
+
+  useEffect(() => {
+    api.getCatalogs().then(res => setSellers(res.sellers || [])).catch(() => { });
+  }, []);
 
   useEffect(() => {
     if (initialData) {
@@ -26,7 +31,7 @@ export default function ProspectoModal({ show, onClose, onSave, initialData }) {
         presupuesto: "",
         observaciones: "",
         etapa: initialData.etapa || "Prospección",
-        vendedor: initialData.vendedor || vendedoresOptions[0],
+        vendedorId: String(initialData.vendedorId || ""),
         motivo: "",
       });
     } else {
@@ -104,11 +109,12 @@ export default function ProspectoModal({ show, onClose, onSave, initialData }) {
                 </div>
                 <div className="col-6">
                   <label className="form-label small fw-medium">Vendedor asignado</label>
-                  <select className="form-select" name="vendedor" value={form.vendedor} onChange={handleChange}>
-                    {vendedoresOptions.map((v) => (
-                      <option key={v}>{v}</option>
-                    ))}
-                  </select>
+                  <select className="form-select" name="vendedorId" value={form.vendedorId} onChange={handleChange}>
+  <option value="">Seleccionar...</option>
+  {sellers.map((s) => (
+    <option key={s.id} value={s.id}>{s.name}</option>
+  ))}
+</select>
                   {form.etapa === "Cierre" && (
                     <div className="col-12">
                       <label className="form-label small fw-medium">Motivo (si es venta fallida)</label>
