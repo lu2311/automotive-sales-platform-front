@@ -2,7 +2,7 @@ import React from "react";
 
 const PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='200' viewBox='0 0 300 200'%3E%3Crect width='300' height='200' fill='%23f0f0f0'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23999' font-size='16'%3ESin imagen%3C/text%3E%3C/svg%3E";
 
-export default function VehiculoCard({ vehiculo }) {
+export default function VehiculoCard({ vehiculo, onDetail }) {
   const imgSrc = vehiculo.imagen || PLACEHOLDER;
   return (
     <div className="card-soft h-100 overflow-hidden vehicle-card">
@@ -24,8 +24,8 @@ export default function VehiculoCard({ vehiculo }) {
           <i className="bi bi-box-seam me-1" /> {vehiculo.disponible ? "Disponible para venta" : `Vendido ${vehiculo.sold} vez(es)`}
         </div>
         <div className="d-flex gap-2">
-          <button className="btn btn-primary-brand text-white btn-sm flex-grow-1" onClick={() => alert(`${vehiculo.nombre}\nPrecio: $${vehiculo.precio.toLocaleString()}\nEstado: ${vehiculo.disponible ? 'Disponible' : 'Vendido'}`)}>Ver detalles</button>
-          <button className="btn btn-outline-secondary btn-sm">
+          <button className="btn btn-primary-brand text-white btn-sm flex-grow-1" onClick={() => onDetail(vehiculo)}>Ver detalles</button>
+          <button className="btn btn-outline-secondary btn-sm" onClick={() => onDetail(vehiculo)}>
             <i className="bi bi-three-dots-vertical" />
           </button>
         </div>

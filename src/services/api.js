@@ -31,5 +31,7 @@ export const api = {
   getPerformance: ()           => request(API.dashboard, '/api/performance'),
   savePerformance:(d)          => request(API.dashboard, '/api/performance', { method:'POST', body:JSON.stringify(d) }),
   createVehicle: (d)           => request(API.dashboard, '/api/vehicles', { method:'POST', body:JSON.stringify(d) }),
+  updateVehicle: (id,d)        => request(API.dashboard, `/api/vehicles/${id}`, { method:'PATCH', body:JSON.stringify(d) }),
+  deleteVehicle: (id)          => request(API.dashboard, `/api/vehicles/${id}`, { method:'DELETE' }),
   createSeller:  (d)           => request(API.dashboard, '/api/sellers', { method:'POST', body:JSON.stringify(d) }),
 };

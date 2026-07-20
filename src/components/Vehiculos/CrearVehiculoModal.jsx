@@ -1,10 +1,25 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { api } from "../../services/api";
 
-export default function CrearVehiculoModal({ show, onClose, onSaved }) {
+export default function CrearVehiculoModal({ show, onClose, onSaved, initialData }) {
+  const isEdit = !!initialData;
   const [form, setForm] = useState({ brand: "", model: "", year: "", price: "", imagen: "" });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (show && initialData) {
+      setForm({
+        brand: initialData.marca || "",
+        model: initialData.nombre ? initialData.nombre.replace(initialData.marca + " ", "").replace(/ \d{4}$/, "") : "",
+        year: initialData.nombre ? (initialData.nombre.match(/\d{4}$/) || [""])[0] : "",
+        price: String(initialData.precio || ""),
+        imagen: initialData.imagen || "",
+      });
+    } else if (show) {
+      setForm({ brand: "", model: "", year: "", price: "", imagen: "" });
+    }
+  }, [show, initialData]);
 
   if (!show) return null;
 
@@ -29,13 +44,23 @@ export default function CrearVehiculoModal({ show, onClose, onSaved }) {
     }
     setSaving(true);
     try {
-      await api.createVehicle({
-        brand: form.brand.trim(),
-        model: form.model.trim(),
-        year: Number(form.year),
-        price: Number(form.price),
-        imagen: form.imagen.trim() || undefined,
-      });
+      if (isEdit) {
+        await api.updateVehicle(initialData.id, {
+          brand: form.brand.trim(),
+          model: form.model.trim(),
+          year: Number(form.year),
+          price: Number(form.price),
+          imagen: form.imagen.trim() || undefined,
+        });
+      } else {
+        await api.createVehicle({
+          brand: form.brand.trim(),
+          model: form.model.trim(),
+          year: Number(form.year),
+          price: Number(form.price),
+          imagen: form.imagen.trim() || undefined,
+        });
+      }
       setForm({ brand: "", model: "", year: "", price: "", imagen: "" });
       onSaved();
       onClose();
@@ -53,8 +78,8 @@ export default function CrearVehiculoModal({ show, onClose, onSaved }) {
           <div className="modal-content border-0" style={{ borderRadius: 14 }}>
             <div className="modal-header border-0 pb-0">
               <div>
-                <h5 className="modal-title fw-bold mb-0">Nuevo Vehículo</h5>
-                <div className="text-muted-sm">Agrega un modelo al catálogo</div>
+                <h5 className="modal-title fw-bold mb-0">{isEdit ? "Editar Vehículo" : "Nuevo Vehículo"}</h5>
+                <div className="text-muted-sm">{isEdit ? "Actualiza los datos del vehículo" : "Agrega un modelo al catálogo"}</div>
               </div>
               <button type="button" className="btn-close" onClick={onClose} />
             </div>
@@ -91,7 +116,7 @@ export default function CrearVehiculoModal({ show, onClose, onSaved }) {
             <div className="modal-footer border-0 pt-0">
               <button className="btn btn-outline-secondary" onClick={onClose} disabled={saving}>Cancelar</button>
               <button className="btn btn-primary-brand text-white" onClick={handleSubmit} disabled={saving}>
-                {saving ? <>Guardando...</> : "Guardar Vehículo"}
+                {saving ? <>Guardando...</> : isEdit ? "Guardar Cambios" : "Guardar Vehículo"}
               </button>
             </div>
           </div>

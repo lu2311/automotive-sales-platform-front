@@ -5,6 +5,7 @@ import ProspectoModal from "./ProspectoModal";
 import CierreModal from "./CierreModal";
 import SeguroModal from "../Seguros/SeguroModal";
 import { api } from "../../services/api";
+import exportCSV from "../../utils/exportCSV";
 
 const filtros = ["Todos", "Prospección", "Calificación", "Negociación", "Cierre"];
 const stageFromAPI = { initial: "Prospección", qualification: "Calificación", negotiation: "Negociación", closed: "Cierre" };
@@ -47,7 +48,21 @@ export default function Prospectos() {
   };
   useEffect(() => { load(); }, []);
 
-
+  const handleExport = () => {
+    const rows = filtrados.map(p => ({
+      Nombre: p.nombre,
+      Teléfono: p.telefono,
+      Email: p.email,
+      Vehículo: p.vehiculo,
+      Etapa: p.etapa,
+      Vendedor: p.vendedor,
+      'Último Contacto': p.ultimoContacto,
+    }));
+    exportCSV('prospectos-' + new Date().toISOString().slice(0, 10) + '.csv',
+      ['Nombre', 'Teléfono', 'Email', 'Vehículo', 'Etapa', 'Vendedor', 'Último Contacto'],
+      rows
+    );
+  };
 
   const filtrados = useMemo(() => {
     return lista.filter((p) => {
@@ -193,7 +208,7 @@ export default function Prospectos() {
               </button>
             ))}
           </div>
-          <button className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-2">
+          <button className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-2" onClick={handleExport}>
             <i className="bi bi-download" /> Exportar
           </button>
         </div>

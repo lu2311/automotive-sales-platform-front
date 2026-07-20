@@ -30,21 +30,23 @@ export default function ProspectoRow({ prospecto, onDelete, onEdit, onAdvance })
       <td>{prospecto.vendedor}</td>
       <td>{prospecto.ultimoContacto}</td>
       <td>
-        <div className="d-flex gap-2">
-          <button className="btn btn-sm btn-light" onClick={() => onEdit(prospecto)}>
-            <i className="bi bi-pencil" />
-          </button>
-          {prospecto.etapa !== "Cierre" && (
+        {prospecto.etapa !== "Cierre" ? (
+          <div className="d-flex gap-2">
+            <button className="btn btn-sm btn-light" onClick={() => onEdit(prospecto)}>
+              <i className="bi bi-pencil" />
+            </button>
             <button className="btn btn-sm btn-primary-brand text-white"
               onClick={() => onAdvance(prospecto)}>
               Avanzar →
             </button>
-          )}
-          <button className="btn btn-sm btn-light text-danger"
-            onClick={() => onDelete(prospecto.id)}>
-            <i className="bi bi-trash" />
-          </button>
-        </div>
+            <button className="btn btn-sm btn-light text-danger"
+              onClick={() => onDelete(prospecto.id)}>
+              <i className="bi bi-trash" />
+            </button>
+          </div>
+        ) : (
+          <span className="text-muted small">Sin acciones</span>
+        )}
       </td>
     </tr>
   );
