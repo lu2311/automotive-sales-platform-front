@@ -17,6 +17,7 @@ export default function VentaModal({ show, onClose, onSave }) {
   const [prospects, setProspects] = useState([]);
   const [vehicles, setVehicles] = useState([]);
   const [sellers, setSellers] = useState([]);
+  const [errors, setErrors] = useState({});
 
 
   useEffect(() => {
@@ -36,9 +37,16 @@ export default function VentaModal({ show, onClose, onSave }) {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: undefined }));
   };
 
   const handleSubmit = () => {
+    const errs = {};
+    if (!form.prospectId) errs.prospectId = "Seleccione un cliente";
+    if (!form.vehicleId) errs.vehicleId = "Seleccione un vehículo";
+    if (!form.sellerId) errs.sellerId = "Seleccione un vendedor";
+    if (!form.monto || Number(form.monto) <= 0) errs.monto = "Ingrese un monto válido";
+    if (Object.keys(errs).length) { setErrors(errs); return; }
     onSave(form);
     setForm(emptyForm);
   };
@@ -59,27 +67,30 @@ export default function VentaModal({ show, onClose, onSave }) {
               <div className="row g-3">
                 <div className="col-6">
                   <label className="form-label small fw-medium">Cliente</label>
-                  <select className="form-select" name="prospectId" value={form.prospectId} onChange={handleChange}>
+                  <select className={`form-select ${errors.prospectId ? 'is-invalid' : ''}`} name="prospectId" value={form.prospectId} onChange={handleChange}>
                     <option value="">Seleccionar...</option>
                     {prospects.map((p) => (
-                      <option key={p.id} value={p.id}>{p.name} — {p.vehicle_interest}</option>
+                      <option key={p.id} value={p.id}>{p.name} — {p.vehicle_name}</option>
                     ))}
                   </select>
+                  {errors.prospectId && <div className="text-danger small mt-1">{errors.prospectId}</div>}
                 </div>
 
                 <div className="col-6">
                   <label className="form-label small fw-medium">Vehículo</label>
-                  <select className="form-select" name="vehicleId" value={form.vehicleId} onChange={handleChange}>
+                  <select className={`form-select ${errors.vehicleId ? 'is-invalid' : ''}`} name="vehicleId" value={form.vehicleId} onChange={handleChange}>
                     <option value="">Seleccionar...</option>
                     {vehicles.map((v) => (
                       <option key={v.id} value={v.id}>{v.brand} {v.model} ({v.year})</option>
                     ))}
                   </select>
+                  {errors.vehicleId && <div className="text-danger small mt-1">{errors.vehicleId}</div>}
                 </div>
 
                 <div className="col-6">
                   <label className="form-label small fw-medium">Monto</label>
-                  <input className="form-control" name="monto" value={form.monto} onChange={handleChange} placeholder="$28,500" />
+                  <input className={`form-control ${errors.monto ? 'is-invalid' : ''}`} name="monto" value={form.monto} onChange={handleChange} placeholder="$28,500" />
+                  {errors.monto && <div className="text-danger small mt-1">{errors.monto}</div>}
                 </div>
 
                 <div className="col-6">
@@ -98,12 +109,13 @@ export default function VentaModal({ show, onClose, onSave }) {
 
                 <div className="col-6">
                   <label className="form-label small fw-medium">Vendedor</label>
-                  <select className="form-select" name="sellerId" value={form.sellerId} onChange={handleChange}>
+                  <select className={`form-select ${errors.sellerId ? 'is-invalid' : ''}`} name="sellerId" value={form.sellerId} onChange={handleChange}>
                     <option value="">Seleccionar...</option>
                     {sellers.map((s) => (
                       <option key={s.id} value={s.id}>{s.name}</option>
                     ))}
                   </select>
+                  {errors.sellerId && <div className="text-danger small mt-1">{errors.sellerId}</div>}
                 </div>
                 <div className="col-6">
                   <label className="form-label small fw-medium">Estado</label>

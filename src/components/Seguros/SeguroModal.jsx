@@ -11,6 +11,7 @@ const emptyForm = {
 export default function SeguroModal({ show, onClose, onSave, prefilledSaleId, isSaving }) {
   const [form, setForm] = useState(emptyForm);
   const [completedSales, setCompletedSales] = useState([]);
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     if (!show) return;
@@ -27,9 +28,14 @@ export default function SeguroModal({ show, onClose, onSave, prefilledSaleId, is
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
+    setErrors(prev => ({ ...prev, [name]: undefined }));
   };
 
   const handleSubmit = () => {
+    const errs = {};
+    if (!form.saleId) errs.saleId = "Seleccione una venta";
+    if (!form.primaEsperada || Number(form.primaEsperada) < 0) errs.primaEsperada = "Ingrese una prima válida (≥ 0)";
+    if (Object.keys(errs).length) { setErrors(errs); return; }
     onSave(form);
     setForm(emptyForm);
   };
@@ -50,12 +56,13 @@ export default function SeguroModal({ show, onClose, onSave, prefilledSaleId, is
               <div className="row g-3">
                 <div className="col-6">
                   <label className="form-label small fw-medium">Venta</label>
-                  <select className="form-select" name="saleId" value={form.saleId} onChange={handleChange}>
+                  <select className={`form-select ${errors.saleId ? 'is-invalid' : ''}`} name="saleId" value={form.saleId} onChange={handleChange}>
                     <option value="">Seleccionar...</option>
                     {completedSales.map(v => (
                       <option key={v.id} value={v.id}>{v.prospect_name} — {v.vehicle_name}</option>
                     ))}
                   </select>
+                  {errors.saleId && <div className="text-danger small mt-1">{errors.saleId}</div>}
                 </div>
 
                 <div className="col-6">
@@ -73,7 +80,8 @@ export default function SeguroModal({ show, onClose, onSave, prefilledSaleId, is
                 </div>
                 <div className="col-6">
                   <label className="form-label small fw-medium">Prima esperada ($)</label>
-                  <input className="form-control" name="primaEsperada" type="number" value={form.primaEsperada} onChange={handleChange} placeholder="1200" />
+                  <input className={`form-control ${errors.primaEsperada ? 'is-invalid' : ''}`} name="primaEsperada" type="number" value={form.primaEsperada} onChange={handleChange} placeholder="1200" />
+                  {errors.primaEsperada && <div className="text-danger small mt-1">{errors.primaEsperada}</div>}
                 </div>
                 <div className="col-6">
                   <label className="form-label small fw-medium">Prima real ($)</label>

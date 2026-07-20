@@ -51,10 +51,14 @@ export default function ProspectoModal({ show, onClose, onSave, initialData }) {
   };
 
   const handleSubmit = () => {
-    if (!form.vendedorId) {
-      setErrors({ vendedorId: "Seleccione un vendedor" });
-      return;
-    }
+    const errs = {};
+    if (!form.nombre.trim()) errs.nombre = "Ingrese el nombre";
+    if (!form.email.trim()) errs.email = "Ingrese el correo";
+    else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email)) errs.email = "Correo inválido";
+    if (!form.telefono.trim()) errs.telefono = "Ingrese el teléfono";
+    else if (!/^\+?\d{7,15}$/.test(form.telefono)) errs.telefono = "Teléfono inválido (7-15 dígitos)";
+    if (!form.vendedorId) errs.vendedorId = "Seleccione un vendedor";
+    if (Object.keys(errs).length) { setErrors(errs); return; }
     onSave(form);
   };
 
@@ -79,7 +83,8 @@ export default function ProspectoModal({ show, onClose, onSave, initialData }) {
               <div className="row g-3">
                 <div className="col-6">
                   <label className="form-label small fw-medium">Nombre</label>
-                  <input className="form-control" name="nombre" value={form.nombre} onChange={handleChange} placeholder="Ricardo" />
+                  <input className={`form-control ${errors.nombre ? 'is-invalid' : ''}`} name="nombre" value={form.nombre} onChange={handleChange} placeholder="Ricardo" />
+                  {errors.nombre && <div className="text-danger small mt-1">{errors.nombre}</div>}
                 </div>
                 <div className="col-6">
                   <label className="form-label small fw-medium">Apellido</label>
@@ -87,11 +92,13 @@ export default function ProspectoModal({ show, onClose, onSave, initialData }) {
                 </div>
                 <div className="col-6">
                   <label className="form-label small fw-medium">Correo electrónico</label>
-                  <input className="form-control" type="email" name="email" value={form.email} onChange={handleChange} placeholder="cliente@email.com" />
+                  <input className={`form-control ${errors.email ? 'is-invalid' : ''}`} type="email" name="email" value={form.email} onChange={handleChange} placeholder="cliente@email.com" />
+                  {errors.email && <div className="text-danger small mt-1">{errors.email}</div>}
                 </div>
                 <div className="col-6">
                   <label className="form-label small fw-medium">Teléfono</label>
-                  <input className="form-control" name="telefono" value={form.telefono} onChange={handleChange} placeholder="+57 300 000 0000" />
+                  <input className={`form-control ${errors.telefono ? 'is-invalid' : ''}`} name="telefono" value={form.telefono} onChange={handleChange} placeholder="+573000000000" />
+                  {errors.telefono && <div className="text-danger small mt-1">{errors.telefono}</div>}
                 </div>
                 <div className="col-6">
                   <label className="form-label small fw-medium">Vehículo de interés</label>
