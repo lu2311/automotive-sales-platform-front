@@ -2,6 +2,8 @@ import React, { useState, useEffect, useMemo } from "react";
 import PageHeader from "../common/PageHeader";
 import ProspectoRow from "./ProspectoRow";
 import ProspectoModal from "./ProspectoModal";
+import CierreModal from "./CierreModal";
+import SeguroModal from "../Seguros/SeguroModal";
 import { api } from "../../services/api";
 
 const filtros = ["Todos", "Prospección", "Calificación", "Negociación", "Cierre"];
@@ -15,6 +17,12 @@ export default function Prospectos() {
   const [busqueda, setBusqueda] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editingProspect, setEditingProspect] = useState(null);
+  const [showCierreModal, setShowCierreModal] = useState(false);
+  const [closingProspect, setClosingProspect] = useState(null);
+  const [showSeguroModal, setShowSeguroModal] = useState(false);
+  const [lastSaleId, setLastSaleId] = useState(null);
+  const [isCierreSaving, setIsCierreSaving] = useState(false);
+  const [isSeguroSaving, setIsSeguroSaving] = useState(false);
 
   const load = async () => {
     try {
@@ -24,7 +32,8 @@ export default function Prospectos() {
         nombre: p.name,
         telefono: p.phone,
         email: p.email,
-        vehiculo: p.vehicle_interest,
+        vehiculo: p.vehicle_name || "",
+        vehicle_id: p.vehicle_id,
         etapa: stageFromAPI[p.stage] || p.stage,
         vendedor: p.seller_name,
         vendedorId: p.seller_id,
@@ -55,12 +64,17 @@ export default function Prospectos() {
   };
 
   const handleSave = async (form) => {
+    const sellerId = Number(form.vendedorId);
+    if (!sellerId || sellerId <= 0) {
+      alert("Seleccione un vendedor asignado");
+      return;
+    }
     const payload = {
       name: `${form.nombre} ${form.apellido}`.trim(),
       email: form.email,
       phone: form.telefono,
-      vehicle_interest: form.vehiculoInteres,
-      seller_id: Number(form.vendedorId),
+      vehicle_id: form.vehicle_id ? Number(form.vehicle_id) : undefined,
+      seller_id: sellerId,
       stage: stageToAPI[form.etapa] || "initial",
     };
     try {
@@ -88,11 +102,58 @@ export default function Prospectos() {
   const handleAdvance = async (prospecto) => {
     const nuevaEtapa = nextStage[prospecto.etapa];
     if (!nuevaEtapa) return;
+
+    if (nuevaEtapa === "Cierre") {
+      setClosingProspect(prospecto);
+      setShowCierreModal(true);
+      return;
+    }
+
     try {
       await api.updateProspect(prospecto.id, { stage: stageToAPI[nuevaEtapa] });
       await load();
     } catch (e) {
       alert(e.message);
+    }
+  };
+
+  const mapError = (msg) => {
+    if (!msg) return "Ocurrió un error inesperado";
+    if (msg.includes("ya está cerrado") || msg.includes("ya tiene una venta"))
+      return "Este prospecto ya fue cerrado. Recargue la página.";
+    if (msg.includes("motivo de pérdida"))
+      return "Debe indicar el motivo de pérdida para registrar una venta fallida.";
+    if (msg.includes("monto debe ser mayor"))
+      return "El monto de la venta debe ser mayor a cero.";
+    if (msg.includes("Vehículo no encontrado"))
+      return "El vehículo seleccionado no existe. Recargue el catálogo.";
+    if (msg.includes("Vendedor no encontrado"))
+      return "El vendedor asignado no existe. Recargue la página.";
+    return msg;
+  };
+
+  const handleCierreSave = async (form) => {
+    setIsCierreSaving(true);
+    try {
+      const sale = await api.createSale({
+        prospect_id: closingProspect.id,
+        vehicle_id: Number(form.vehicleId),
+        seller_id: closingProspect.vendedorId,
+        amount: Number(form.monto),
+        status: form.resultado === "won" ? "completed" : "failed",
+        loss_reason: form.loss_reason || undefined,
+      });
+      setShowCierreModal(false);
+      setClosingProspect(null);
+      if (form.resultado === "won" && sale?.id) {
+        setLastSaleId(sale.id);
+        setShowSeguroModal(true);
+      }
+      await load();
+    } catch (e) {
+      alert(mapError(e.message));
+    } finally {
+      setIsCierreSaving(false);
     }
   };
 
@@ -172,6 +233,39 @@ export default function Prospectos() {
           </table>
         </div>
       </div>
+
+      <CierreModal
+        show={showCierreModal}
+        prospecto={closingProspect}
+        isSaving={isCierreSaving}
+        onClose={() => { setShowCierreModal(false); setClosingProspect(null); }}
+        onSave={handleCierreSave}
+      />
+
+      <SeguroModal
+        show={showSeguroModal}
+        prefilledSaleId={lastSaleId}
+        isSaving={isSeguroSaving}
+        onClose={() => setShowSeguroModal(false)}
+        onSave={async (form) => {
+          setIsSeguroSaving(true);
+          try {
+            await api.createInsurance({
+              sale_id: lastSaleId,
+              type: form.tipo,
+              expected_premium: Number(form.primaEsperada),
+              actual_premium: form.primaReal ? Number(form.primaReal) : null,
+              status: form.estado === "Vendido" ? "sold" : "prospected",
+            });
+            setShowSeguroModal(false);
+            await load();
+          } catch (e) {
+            alert(mapError(e.message));
+          } finally {
+            setIsSeguroSaving(false);
+          }
+        }}
+      />
 
       <ProspectoModal
         show={showModal}

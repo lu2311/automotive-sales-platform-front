@@ -1,22 +1,24 @@
 import React, { useState, useEffect } from "react";
 import { api } from "../../services/api";
 
-
-
 const emptyForm = {
   nombre: "", apellido: "", email: "", telefono: "",
-  vehiculoInteres: "", presupuesto: "", observaciones: "",
+  vehicle_id: "", presupuesto: "", observaciones: "",
   etapa: "Prospección", vendedorId: "",
   motivo: "",
 };
 
-
 export default function ProspectoModal({ show, onClose, onSave, initialData }) {
   const [form, setForm] = useState(emptyForm);
   const [sellers, setSellers] = useState([]);
+  const [vehiculos, setVehiculos] = useState([]);
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
-    api.getCatalogs().then(res => setSellers(res.sellers || [])).catch(() => { });
+    api.getCatalogs().then(res => {
+      setSellers(res.sellers || []);
+      setVehiculos(res.vehicles || []);
+    }).catch(() => { });
   }, []);
 
   useEffect(() => {
@@ -27,7 +29,7 @@ export default function ProspectoModal({ show, onClose, onSave, initialData }) {
         apellido: rest.join(" ") || "",
         email: initialData.email || "",
         telefono: initialData.telefono || "",
-        vehiculoInteres: initialData.vehiculo || "",
+        vehicle_id: String(initialData.vehicle_id || ""),
         presupuesto: "",
         observaciones: "",
         etapa: initialData.etapa || "Prospección",
@@ -45,9 +47,14 @@ export default function ProspectoModal({ show, onClose, onSave, initialData }) {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: undefined }));
   };
 
   const handleSubmit = () => {
+    if (!form.vendedorId) {
+      setErrors({ vendedorId: "Seleccione un vendedor" });
+      return;
+    }
     onSave(form);
   };
 
@@ -88,7 +95,12 @@ export default function ProspectoModal({ show, onClose, onSave, initialData }) {
                 </div>
                 <div className="col-6">
                   <label className="form-label small fw-medium">Vehículo de interés</label>
-                  <input className="form-control" name="vehiculoInteres" value={form.vehiculoInteres} onChange={handleChange} placeholder="Toyota Corolla 2024" />
+                  <select className="form-select" name="vehicle_id" value={form.vehicle_id} onChange={handleChange}>
+                    <option value="">Seleccionar...</option>
+                    {vehiculos.map(v => (
+                      <option key={v.id} value={v.id}>{v.brand} {v.model} ({v.year})</option>
+                    ))}
+                  </select>
                 </div>
                 <div className="col-6">
                   <label className="form-label small fw-medium">Presupuesto</label>
@@ -109,12 +121,13 @@ export default function ProspectoModal({ show, onClose, onSave, initialData }) {
                 </div>
                 <div className="col-6">
                   <label className="form-label small fw-medium">Vendedor asignado</label>
-                  <select className="form-select" name="vendedorId" value={form.vendedorId} onChange={handleChange}>
+                  <select className={`form-select ${errors.vendedorId ? 'is-invalid' : ''}`} name="vendedorId" value={form.vendedorId} onChange={handleChange}>
   <option value="">Seleccionar...</option>
   {sellers.map((s) => (
     <option key={s.id} value={s.id}>{s.name}</option>
   ))}
 </select>
+                  {errors.vendedorId && <div className="text-danger small mt-1">{errors.vendedorId}</div>}
                   {form.etapa === "Cierre" && (
                     <div className="col-12">
                       <label className="form-label small fw-medium">Motivo (si es venta fallida)</label>

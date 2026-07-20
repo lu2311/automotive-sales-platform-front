@@ -30,4 +30,6 @@ export const api = {
   createInsurance:(d)          => request(API.insurance, '/insurance', { method:'POST', body:JSON.stringify(d) }),
   getPerformance: ()           => request(API.dashboard, '/api/performance'),
   savePerformance:(d)          => request(API.dashboard, '/api/performance', { method:'POST', body:JSON.stringify(d) }),
+  createVehicle: (d)           => request(API.dashboard, '/api/vehicles', { method:'POST', body:JSON.stringify(d) }),
+  createSeller:  (d)           => request(API.dashboard, '/api/sellers', { method:'POST', body:JSON.stringify(d) }),
 };

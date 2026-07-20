@@ -8,7 +8,7 @@ const emptyForm = {
   primaEsperada: "", primaReal: "", estado: "Prospectado",
 };
 
-export default function SeguroModal({ show, onClose, onSave }) {
+export default function SeguroModal({ show, onClose, onSave, prefilledSaleId, isSaving }) {
   const [form, setForm] = useState(emptyForm);
   const [completedSales, setCompletedSales] = useState([]);
 
@@ -17,7 +17,10 @@ export default function SeguroModal({ show, onClose, onSave }) {
     api.getSales().then(data => {
       setCompletedSales((data || []).filter(s => s.status === 'completed'));
     }).catch(() => { });
-  }, [show]);
+    if (prefilledSaleId) {
+      setForm(prev => ({ ...prev, saleId: prefilledSaleId }));
+    }
+  }, [show, prefilledSaleId]);
 
   if (!show) return null;
 
@@ -79,8 +82,10 @@ export default function SeguroModal({ show, onClose, onSave }) {
               </div>
             </div>
             <div className="modal-footer border-0 pt-0">
-              <button className="btn btn-outline-secondary" onClick={onClose}>Cancelar</button>
-              <button className="btn btn-primary-brand text-white" onClick={handleSubmit}>Guardar Seguro</button>
+              <button className="btn btn-outline-secondary" onClick={onClose} disabled={isSaving}>Cancelar</button>
+              <button className="btn btn-primary-brand text-white" onClick={handleSubmit} disabled={isSaving}>
+                {isSaving ? "Guardando..." : "Guardar Seguro"}
+              </button>
             </div>
           </div>
         </div>

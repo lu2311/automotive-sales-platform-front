@@ -17,6 +17,7 @@ export default function Dashboard() {
   const refreshData = useCallback(async () => {
     try {
       const data = await api.getMetrics();
+      const ventasMonto = data.ventas_del_mes ?? (data.completed_sales * 28000);
       setKpiData({
         totalProspectos: data.total_prospects,
         prospectosDelta: null,
@@ -28,7 +29,7 @@ export default function Dashboard() {
         tasaConversionDelta: null,
         segurosVinculados: data.linked_insurance,
         segurosDelta: null,
-        ventasDelMes: (data.completed_sales * 28000).toLocaleString(),
+        ventasDelMes: ventasMonto.toLocaleString('en-US', {minimumFractionDigits: 0}),
         ventasDelMesDelta: null,
       });
       setFunnel(data.funnel || []);

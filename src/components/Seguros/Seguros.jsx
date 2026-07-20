@@ -19,10 +19,12 @@ export default function Seguros() {
       setDetalle(data.map(i => ({
         id: i.id,
         cliente: i.prospect_name,
+        vehicle_name: i.vehicle_name,
         tipo: i.type,
         primaEsperada: i.expected_premium,
         primaReal: i.actual_premium,
         estado: insStatusLabel[i.status] || i.status,
+        created_at: i.created_at,
       })));
       setResumen({
         prospectados: data.filter(i => i.status === 'prospected').length,
